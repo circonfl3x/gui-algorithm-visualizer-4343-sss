@@ -1,11 +1,12 @@
 import streamlit as st
-
-st.set_page_config(layout="wide")
+from plot_template import create_fitness_plot
+st.set_page_config(page_title="Sudoku GA", layout="wide")
 
 st.title("Решение судоку")
+
 main_col1, main_col2, main_col3 = st.columns(3)
 with main_col1:
-    with st.container(border=True, horizontal_alignment="left"):
+    with st.container(border=True, horizontal_alignment="center"):
         st.subheader("Параметры генетического алгоритма")
         population_size = st.slider(
             "Размер популяции",
@@ -39,5 +40,8 @@ with main_col3:
     with st.container(border=True):
         st.subheader("Лучшее текущее решение")
 with st.container(border=True):
-    st.subheader("График изменения приспособленности")
-    st.plotly_chart()
+    st.subheader("График приспособленности")
+
+    fig = create_fitness_plot() # TODO plot
+
+    st.plotly_chart(fig, use_container_width=True)
