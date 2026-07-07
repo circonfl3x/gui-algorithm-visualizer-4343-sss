@@ -5,4 +5,4 @@
 - starlette
 - plotly
 - dokusan
-- uvicorn (должно быть установлен с streamlit?)
+- uvicorn, itsdangerous (должны быть установлен с streamlit?)
