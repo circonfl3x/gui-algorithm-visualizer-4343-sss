@@ -44,11 +44,3 @@ def field_to_img(field_np, cell_size=60, line_color = 'black', text_color='black
 
                     draw.text((x,y), str(val), fill=text_color, font=font)
     return img
-
-
-field = generate_puzzle() 
-
-print(field[0])
-img = field_to_img(field[1])
-#img.show()
-img.save("puzzle.png")
