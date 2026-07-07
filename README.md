@@ -6,3 +6,4 @@
 - plotly
 - dokusan
 - uvicorn, itsdangerous (должны быть установлен с streamlit?)
+- pillow
