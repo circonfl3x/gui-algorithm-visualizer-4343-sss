@@ -2,6 +2,7 @@ from dokusan import generators, solvers
 from pprint import pprint
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
+import time
 
 def generate_puzzle():
     field = generators.random_sudoku(avg_rank=100)
@@ -14,7 +15,8 @@ def get_solution(field):
     solution_np = np.array(list(str(solution)), dtype=int).reshape(9, 9)
 
     return solution, solution_np
-def field_to_img(field_np, cell_size=60, line_color = 'black', text_color='black', bg='white'):
+
+def field_to_img(field_np, cell_size=60, line_color = 'black', text_color='black', bg='white'): # 0.114502... - Время выполнения
     width = height = cell_size * 9
     img = Image.new('RGB', (width,height), color=bg)
     draw = ImageDraw.Draw(img)
@@ -42,7 +44,10 @@ def field_to_img(field_np, cell_size=60, line_color = 'black', text_color='black
 
                     draw.text((x,y), str(val), fill=text_color, font=font)
     return img
-field = generate_puzzle()
+
+
+field = generate_puzzle() 
+
 print(field[0])
 img = field_to_img(field[1])
 img.show()
