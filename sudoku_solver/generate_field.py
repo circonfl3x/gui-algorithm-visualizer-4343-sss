@@ -23,7 +23,7 @@ def field_to_img(field_np, cell_size=60, line_color = 'black', text_color='black
     #Grid lines
 
     for i in range(10):
-        line_width = 1 # TODO: на каждой 3-й границей рисовать жирнее линию чтоб
+        line_width = 4 if i % 3 == 0 else 1 # TODO: на каждой 3-й границей рисовать жирнее линию чтоб
                         # он будет похоже на настояшую доску судоку
         pos = i * cell_size
 
