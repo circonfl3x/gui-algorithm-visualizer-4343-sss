@@ -42,12 +42,12 @@ with main_col2:
     with sudoku_col1:
         with st.container(border=True):
             st.subheader("Исходное поле судоку", text_alignment="center")
-            st.image("sudoku_template.png") # TODO sudoku view
+            st.image("sudoku_solver/puzzle.png") # TODO sudoku view
 
     with sudoku_col2:
         with st.container(border=True):
             st.subheader("Лучшее текущее решение", text_alignment="center")
-            st.image("sudoku_template.png") # TODO sudoku view
+            st.image("sudoku_solver/puzzle.png") # TODO sudoku view
 
     with st.container():
         info_col1, info_col2, info_col3, info_col4 = st.columns(4)
