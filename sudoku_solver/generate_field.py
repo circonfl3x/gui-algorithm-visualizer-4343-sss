@@ -50,5 +50,5 @@ field = generate_puzzle()
 
 print(field[0])
 img = field_to_img(field[1])
-img.show()
+#img.show()
 img.save("puzzle.png")
