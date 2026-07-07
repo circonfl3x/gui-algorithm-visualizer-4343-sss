@@ -1,5 +1,6 @@
 import streamlit as st
 from plot_template import create_fitness_plot
+from sudoku_solver import generate_field
 st.set_page_config(page_title="Sudoku GA", layout="wide")
 
 #st.header("Решение судоку")
@@ -24,6 +25,10 @@ with main_col1:
     with st.container(border=True):
         st.subheader("Управление", text_alignment="center")
         with st.container():
+            if st.button("Новый паззл", width="stretch", type="primary"):
+                field = generate_field.generate_puzzle()
+                img = generate_field.field_to_img(field[1])
+                img.save("sudoku_solver/puzzle.png")
             button_col1, button_col2, button_col3, button_col4 = st.columns(4)
             with button_col1:
                 st.button("Шаг назад", width="stretch")
