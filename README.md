@@ -1,4 +1,7 @@
 # gui-algorithm-visualizer-4343-sss
+## How to run
+Web gui starts with command:
+ `streamlit run gui.py`
 ## Deployment
 The deployed web GUI is available at https://sudoku.enarwi.ru/
 ## Dependencies
