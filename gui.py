@@ -9,6 +9,11 @@ main_col1, main_col2 = st.columns([1,4])
 with main_col1:
     with st.container(border=True, horizontal_alignment="center"):
         st.subheader("Параметры алгоритма", text_alignment="center")
+        population_count = st.slider(
+            "Количество популяций",
+            min_value=1,
+            max_value=20
+        )
         population_size = st.slider(
             "Размер популяции",
             min_value=50, max_value=1000, value=100)
