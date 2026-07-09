@@ -10,6 +10,9 @@ class GeneticAlgorithm:
 
     def __init__(self, field, population_count=10, population_size=100, max_generations=1000, mutation_rate=0.2, crossover_rate=0.8):
         self.field = field
+        self.current_generation = 0
+        self.solved = False
+        self.solution = None
         self.population_count = population_count
         self.population_size = population_size
         self.max_generations = max_generations
@@ -64,41 +67,89 @@ class GeneticAlgorithm:
 
             matrix[row_1][col_1], matrix[row_2][col_2] = matrix[row_2][col_2], matrix[row_1][col_1]
 
+    def get_best_individual(self):
+        best_individual = None
+        best_fitness = float("inf")
 
-    def run(self):      
-        for generation in range(self.max_generations): # в среднем обработка одного поколения занимает 0.5 сек, это значит, что 1000 поколений займет 500 секунд...
+        for popul in self.populations:
+            popul.update()
 
-            for popul in self.populations:
+            if popul.fittest < best_fitness:
+                best_fitness = popul.fittest
+                best_individual = popul.answer
 
-                nxt_generation = []
+        return best_individual, best_fitness
+    
+    def get_snapshot(self):
+        best_individual, best_fitness = self.get_best_individual()
 
-                popul.update()
-                if popul.fittest == 0:
-                    print("Solution found")
-                    return popul.answer.currentMatrix
+        return {
+            "generation": self.current_generation,
+            "best_fitness": best_fitness,
+            "matrix": copy.deepcopy(best_individual.currentMatrix),
+            "solved": best_fitness == 0,
+        }
+    
+    def step(self):
+        if self.solved or (self.current_generation >= self.max_generations):
+            return self.get_snapshot()
 
-                weights=[(81 - i.fitness)/(81*self.population_size - sum(popul.fitnesses)) for i in popul.Individuals] # это расчет вероятности выбора особо в кач-ве родителя (кол-во верных клеток делить на кол-во верных клеток во всей популяции)
+        self.current_generation += 1
 
-                for i in range(self.population_size//2):
-                    parents = random.choices(popul.Individuals, weights=weights, k=2) # выбираем две случ особи с учетом вероятности расчитанной выше
+        for popul in self.populations:
 
-                    if random.random() < self.crossover_rate:
-                        new_matrix1, new_matrix2 = self._crossover(parents[0].currentMatrix, parents[1].currentMatrix)
-                        child1 = Individual(new_matrix1)
-                        child2 = Individual(new_matrix2)
-                    else:
-                        child1 = Individual(copy.deepcopy(parents[0].currentMatrix))
-                        child2 = Individual(copy.deepcopy(parents[1].currentMatrix))
+            nxt_generation = []
 
-                    if random.random() < self.mutation_rate: # вынес шанс мутации за функцию
-                        self._mutatation(child1.currentMatrix) 
-                    if random.random() < self.mutation_rate:
-                        self._mutatation(child2.currentMatrix)
+            popul.update()
+            if popul.fittest == 0:
+                print("Solution found")
+                self.solved = True
+                self.solution = copy.deepcopy(popul.answer.currentMatrix)
+                return self.get_snapshot()
 
-                    nxt_generation.append(child1)
-                    nxt_generation.append(child2)
+            weights = [
+                max(1, 81 - i.fitness)
+                for i in popul.Individuals
+            ] # это расчет вероятности выбора особо в кач-ве родителя (кол-во верных клеток делить на кол-во верных клеток во всей популяции)
 
-                popul.Individuals = nxt_generation
+            for i in range(self.population_size//2):
+                parents = random.choices(popul.Individuals, weights=weights, k=2) # выбираем две случ особи с учетом вероятности расчитанной выше
+
+                if random.random() < self.crossover_rate:
+                    new_matrix1, new_matrix2 = self._crossover(parents[0].currentMatrix, parents[1].currentMatrix)
+                    child1 = Individual(new_matrix1)
+                    child2 = Individual(new_matrix2)
+                else:
+                    child1 = Individual(copy.deepcopy(parents[0].currentMatrix))
+                    child2 = Individual(copy.deepcopy(parents[1].currentMatrix))
+
+                if random.random() < self.mutation_rate: # вынес шанс мутации за функцию
+                    self._mutatation(child1.currentMatrix) 
+                if random.random() < self.mutation_rate:
+                    self._mutatation(child2.currentMatrix)
+
+                nxt_generation.append(child1)
+                nxt_generation.append(child2)
+
+            popul.Individuals = nxt_generation
+        snapshot = self.get_snapshot()
+
+        if snapshot["solved"]:
+            self.solved = True
+            self.solution = copy.deepcopy(snapshot["matrix"])
+
+        return snapshot
+
+    def run(self):
+        snapshot = self.get_snapshot()
+
+        while not self.solved and self.current_generation < self.max_generations:
+            snapshot = self.step()
+
+            if snapshot["solved"]:
+                return snapshot
+
+        return snapshot
 
 MUTATION_RATE = 0.2
 CROSSOVER_RATE = 0.8

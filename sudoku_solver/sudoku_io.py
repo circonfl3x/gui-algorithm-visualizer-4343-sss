@@ -2,7 +2,6 @@ from dokusan import generators, solvers
 from pprint import pprint
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-import time
 from os import sys
 
 def generate_puzzle():
