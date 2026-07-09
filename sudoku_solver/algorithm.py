@@ -125,9 +125,7 @@ class GeneticAlgorithm:
 
         return new_matrix1, new_matrix2
 
-    def _mutatation(self, matrix, mutation_chance):
-        if random.random() > mutation_chance:
-            return
+    def _mutatation(self, matrix):
         random_3x3 = random.randint(0, 8) # выбираем случайный блок 3х3
         row = random_3x3//3 * 3
         col = random_3x3%3 * 3
@@ -176,8 +174,10 @@ class GeneticAlgorithm:
                         child1 = Individual(copy.deepcopy(parents[0].currentMatrix))
                         child2 = Individual(copy.deepcopy(parents[1].currentMatrix))
 
-                    self._mutatation(child1.currentMatrix, self.mutation_rate)
-                    self._mutatation(child2.currentMatrix, self.mutation_rate)
+                    if random.random() < self.mutation_rate: # вынес шанс мутации за функцию
+                        self._mutatation(child1.currentMatrix) 
+                    if random.random() < self.mutation_rate:
+                        self._mutatation(child2.currentMatrix)
 
                     nxt_generation.append(child1)
                     nxt_generation.append(child2)
