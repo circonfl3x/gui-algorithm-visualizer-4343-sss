@@ -16,6 +16,7 @@ def get_solution(field):
     solution_np = np.array(list(str(solution)), dtype=int).reshape(9, 9)
 
     return solution, solution_np
+
 def field_from_input():
     field = []
     line_num = 0
@@ -34,6 +35,7 @@ def field_from_input():
                 raise ValueError(f"Element on position {i+1}, line {line_num+1} is out of range")
         field.append(row)
     return field
+    
 def field_from_file(filename):
     field = []
     line_num = 0
