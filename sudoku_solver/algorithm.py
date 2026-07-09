@@ -161,10 +161,10 @@ class GeneticAlgorithm:
                     print("Solution found")
                     return popul.answer.currentMatrix
 
-                weights=[(81 - i.fitness)/(81*self.population_size - sum(popul.fitnesses)) for i in popul.Individuals]
+                weights=[(81 - i.fitness)/(81*self.population_size - sum(popul.fitnesses)) for i in popul.Individuals] # это расчет вероятности выбора особо в кач-ве родителя (кол-во верных клеток делить на кол-во верных клеток во всей популяции)
 
                 for i in range(self.population_size//2):
-                    parents = random.choices(popul.Individuals, weights=weights, k=2)
+                    parents = random.choices(popul.Individuals, weights=weights, k=2) # выбираем две случ особи с учетом вероятности расчитанной выше
 
                     if random.random() < self.crossover_rate:
                         new_matrix1, new_matrix2 = self._crossover(parents[0].currentMatrix, parents[1].currentMatrix)
