@@ -70,14 +70,24 @@ class Individual:
 class Population:
     def __init__(self, field, size = 100):
         self.Individuals = [Individual(field) for _ in range(size)]
-        self.fittest = int('inf')
+        self.fittest = float('+inf')
         self.avg_fitness:float = 0
-        self._update()
+        self.fitnesses = []
+        self.answer = None
+        self.update()
 
-    def _update(self):
-        fitness = [i.fitness for i in self.Individuals]
-        self.fittest = min(fitness)
-        self.avg_fitness = sum(fitness) / len(fitness)
+    def update(self):
+        for i in self.Individuals:
+            i._calculate_fitness()
+        
+        self.fitnesses = [] 
+        for i in self.Individuals:
+            self.fitnesses.append(i.fitness)
+            if i.fitness == 0:
+                self.answer = i
+
+        self.fittest = min(self.fitnesses)
+        self.avg_fitness = sum(self.fitnesses) / len(self.fitnesses)
 
 class GeneticAlgorithm:
 
@@ -115,7 +125,9 @@ class GeneticAlgorithm:
 
         return new_matrix1, new_matrix2
 
-    def _mutatation(self, matrix):
+    def _mutatation(self, matrix, mutation_chance):
+        if random.random() > mutation_chance:
+            return
         random_3x3 = random.randint(0, 8) # выбираем случайный блок 3х3
         row = random_3x3//3 * 3
         col = random_3x3%3 * 3
@@ -139,12 +151,49 @@ class GeneticAlgorithm:
 
 
     def run(self):
-        pass
+        for generation in range(self.max_generations):
+            print(f"Generation: {generation+1}")
+
+            for popul in self.populations:
+
+                nxt_generation = []
+
+                popul.update()
+                if popul.fittest == 0:
+                    print("Solution found")
+                    return popul.answer.currentMatrix
+
+                weights=[(81 - i.fitness)/(81*self.population_size - sum(popul.fitnesses)) for i in popul.Individuals]
+
+                for i in range(self.population_size//2):
+                    parents = random.choices(popul.Individuals, weights=weights, k=2)
+
+                    if random.random() < self.crossover_rate:
+                        new_matrix1, new_matrix2 = self._crossover(parents[0].currentMatrix, parents[1].currentMatrix)
+                        child1 = Individual(new_matrix1)
+                        child2 = Individual(new_matrix2)
+                    else:
+                        child1 = Individual(copy.deepcopy(parents[0].currentMatrix))
+                        child2 = Individual(copy.deepcopy(parents[1].currentMatrix))
+
+                    self._mutatation(child1.currentMatrix, self.mutation_rate)
+                    self._mutatation(child2.currentMatrix, self.mutation_rate)
+
+                    nxt_generation.append(child1)
+                    nxt_generation.append(child2)
+
+                popul.Individuals = nxt_generation
+                
+                
+
+                    
+
+
 
 
 
 if __name__ == "__main__":
     _, field = gf.generate_puzzle()
     ga = GeneticAlgorithm(field, population_count=POPULATION_COUNT, population_size=POPULATION_SIZE, max_generations=MAX_GENERATIONS, mutation_rate=MUTATION_RATE, crossover_rate=CROSSOVER_RATE)
-
+    ga.run()
     
