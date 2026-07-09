@@ -115,11 +115,31 @@ class GeneticAlgorithm:
 
         return new_matrix1, new_matrix2
 
+    def _mutatation(self, matrix):
+        random_3x3 = random.randint(0, 8) # выбираем случайный блок 3х3
+        row = random_3x3//3 * 3
+        col = random_3x3%3 * 3
+
+        variants = []
+
+        for i in range(row, row+3):
+            for j in range(col, col+3):
+                if (i,j) not in self.fixed_cells:
+                    variants.append((i,j))
+        
+        if len(variants) >1:
+            random.shuffle(variants)
+            
+            row_1 = variants[0][0]
+            col_1 = variants[0][1]
+            row_2 = variants[1][0]
+            col_2 = variants[1][1]
+
+            matrix[row_1][col_1], matrix[row_2][col_2] = matrix[row_2][col_2], matrix[row_1][col_1]
+
 
     def run(self):
         pass
-
-
 
 
 
