@@ -2,6 +2,15 @@ import generate_field as gf
 import random
 import copy
 
+MUTATION_RATE = 0.2
+CROSSOVER_RATE = 0.8
+
+POPULATION_COUNT = 10
+POPULATION_SIZE = 100
+
+MAX_GENERATIONS = 1000
+
+
 class Individual:
     def __init__(self, field):
         # self.id = random.randInt(1000,9999)
@@ -70,7 +79,23 @@ class Population:
         self.fittest = min(fitness)
         self.avg_fitness = sum(fitness) / len(fitness)
 
+class GeneticAlgorithm:
+
+    def __init__(self, field, population_count=10, population_size=100, max_generations=1000, mutation_rate=0.2, crossover_rate=0.8):
+        self.field = field
+        self.population_count = population_count
+        self.population_size = population_size
+        self.max_generations = max_generations
+        self.mutation_rate = mutation_rate
+        self.crossover_rate = crossover_rate
+        self.populations = [Population(field, population_size) for _ in range(population_count)]
+
+
+
+
 
 if __name__ == "__main__":
     _, field = gf.generate_puzzle()
+    ga = GeneticAlgorithm(field, population_count=POPULATION_COUNT, population_size=POPULATION_SIZE, max_generations=MAX_GENERATIONS, mutation_rate=MUTATION_RATE, crossover_rate=CROSSOVER_RATE)
+
     
