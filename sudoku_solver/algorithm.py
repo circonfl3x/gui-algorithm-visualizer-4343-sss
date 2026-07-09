@@ -90,6 +90,9 @@ class GeneticAlgorithm:
         self.crossover_rate = crossover_rate
         self.populations = [Population(field, population_size) for _ in range(population_count)]
 
+    def run(self):
+        pass
+
 
 
 
