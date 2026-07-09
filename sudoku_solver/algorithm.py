@@ -8,10 +8,10 @@ class Individual:
         self.currentMatrix = [row[:] for row in field]
         self.fitness = 0
         # self.population
-        self._fill_empty()
+        self._fill_empty_cells()
         self._calculate_fitness()
 
-    def _fill_empty_cells(self):
+    def _fill_empty_cells(self): # оптимизировать, чтобы не было повторов в столбцах и блоках 3x3
         for row in range(9):
             empty = [n for n in range(1,10) if n not in self.currentMatrix[row]]
             random.shuffle(empty) # nice hack)
@@ -24,21 +24,39 @@ class Individual:
         conflicts = 0 # Тем ниже конфликты, тем лучше. Если конфликт = 0, значит это
                         # действительное решение
         for row in range(9):
-            seen = set()
+            seen_row = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
+
+            for col in range(9):
+                seen_row[str(self.currentMatrix[row][col])] = seen_row.get(str(self.currentMatrix[row][col]), 0) + 1
+            
+            for count in seen_row.values():
+                if count > 1:
+                    conflicts += count  # число встретилось не один раз => каждое число конфилктное
+
+        for col in range(9):
+            seen_col = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
+
             for row in range(9):
-                if currentMatrix[row][col] in seen:
-                    conflicts += 1
-                seen.add(currentMatrix[row][col])
+                seen_col[str(self.currentMatrix[row][col])] = seen_col.get(str(self.currentMatrix[row][col]), 0) + 1
+
+            for count in seen_col.values():
+                if count > 1:
+                    conflicts += count  # число встретилось не один раз => каждое число конфилктное
+
         # надо тоже отдельно проверить каждую 3x3 площадку
-        for b_row in range(0,9,3): # nice hack)
-            for b_col in range(0,9,3):
-                seen = set()
-                for row in range(b_row, b_row+3):
-                    for col in range(b_col, b_col+3):
-                        if self.currentMatrix[row][col] in seen:
-                            conflicts += 1
-                        seen.add(self.currentMatrix[row][col])
+        for b_row in range(3):
+            for b_col in range(3):
+                seen_col = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
+                for row in range(b_row*3, (b_row+1)*3):
+                    for col in range(b_col*3, (b_col+1)*3):
+                        seen_col[str(self.currentMatrix[row][col])] = seen_col.get(str(self.currentMatrix[row][col]), 0) + 1
+
+                for count in seen_col.values():
+                    if count > 1:
+                        conflicts += count  # число встретилось не один раз => каждое число конфилктное
+        
         self.fitness = conflicts
+
 
 class Population:
     def __init__(self, field, size = 100):
@@ -54,5 +72,5 @@ class Population:
 
 
 if __name__ == "__main__":
-    field = gf.generate_puzzle()
+    _, field = gf.generate_puzzle()
     
