@@ -1,10 +1,94 @@
-import copy
- 
-from classes.Population import Population
-from classes.Individual import Individual
+import generate_field as gf
 import random
+import copy
+import time
 
-from sudoku_solver.sudoku_io import generate_puzzle as gf
+MUTATION_RATE = 0.2
+CROSSOVER_RATE = 0.8
+
+POPULATION_COUNT = 10
+POPULATION_SIZE = 100
+
+MAX_GENERATIONS = 1000
+
+
+class Individual:
+    def __init__(self, field):
+        # self.id = random.randInt(1000,9999)
+        self.currentMatrix = [row[:] for row in field]
+        self.fitness = 0
+        # self.population
+        self._fill_empty_cells()
+        self._calculate_fitness()
+
+    def _fill_empty_cells(self): # оптимизировать, чтобы не было повторов в столбцах и блоках 3x3
+        for row in range(9):
+            empty = [n for n in range(1,10) if n not in self.currentMatrix[row]]
+            random.shuffle(empty) # nice hack)
+
+            for col in range(9):
+                if self.currentMatrix[row][col] == 0:
+                    self.currentMatrix[row][col] = empty.pop()
+
+    def _calculate_fitness(self):
+        conflicts = 0 # Тем ниже конфликты, тем лучше. Если конфликт = 0, значит это
+                        # действительное решение
+        for row in range(9):
+            seen_row = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
+
+            for col in range(9):
+                seen_row[str(self.currentMatrix[row][col])] = seen_row.get(str(self.currentMatrix[row][col]), 0) + 1
+            
+            for count in seen_row.values():
+                if count > 1:
+                    conflicts += count  # число встретилось не один раз => каждое число конфилктное
+
+        for col in range(9):
+            seen_col = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
+
+            for row in range(9):
+                seen_col[str(self.currentMatrix[row][col])] = seen_col.get(str(self.currentMatrix[row][col]), 0) + 1
+
+            for count in seen_col.values():
+                if count > 1:
+                    conflicts += count  # число встретилось не один раз => каждое число конфилктное
+
+        # надо тоже отдельно проверить каждую 3x3 площадку
+        for b_row in range(3):
+            for b_col in range(3):
+                seen_col = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
+                for row in range(b_row*3, (b_row+1)*3):
+                    for col in range(b_col*3, (b_col+1)*3):
+                        seen_col[str(self.currentMatrix[row][col])] = seen_col.get(str(self.currentMatrix[row][col]), 0) + 1
+
+                for count in seen_col.values():
+                    if count > 1:
+                        conflicts += count  # число встретилось не один раз => каждое число конфилктное
+        
+        self.fitness = conflicts
+
+
+class Population:
+    def __init__(self, field, size = 100):
+        self.Individuals = [Individual(field) for _ in range(size)]
+        self.fittest = float('+inf')
+        self.avg_fitness:float = 0
+        self.fitnesses = []
+        self.answer = None
+        self.update()
+
+    def update(self):
+        for i in self.Individuals:
+            i._calculate_fitness()
+        
+        self.fitnesses = [] 
+        for i in self.Individuals:
+            self.fitnesses.append(i.fitness)
+            if i.fitness == 0:
+                self.answer = i
+
+        self.fittest = min(self.fitnesses)
+        self.avg_fitness = sum(self.fitnesses) / len(self.fitnesses)
 
 class GeneticAlgorithm:
 
@@ -100,16 +184,16 @@ class GeneticAlgorithm:
 
                 popul.Individuals = nxt_generation
 
-MUTATION_RATE = 0.2
-CROSSOVER_RATE = 0.8
+                
 
-POPULATION_COUNT = 10
-POPULATION_SIZE = 100
+                    
 
-MAX_GENERATIONS = 1000          
+
+
+
 
 if __name__ == "__main__":
-    _, field = gf()
+    _, field = gf.generate_puzzle()
     ga = GeneticAlgorithm(field, population_count=POPULATION_COUNT, population_size=POPULATION_SIZE, max_generations=MAX_GENERATIONS, mutation_rate=MUTATION_RATE, crossover_rate=CROSSOVER_RATE)
     ga.run()
     
