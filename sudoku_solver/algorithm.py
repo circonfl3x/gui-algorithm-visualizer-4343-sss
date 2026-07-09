@@ -89,7 +89,16 @@ class GeneticAlgorithm:
         self.mutation_rate = mutation_rate
         self.crossover_rate = crossover_rate
         self.populations = [Population(field, population_size) for _ in range(population_count)]
+        self.fixed_cells = self._get_fixed_cells()
 
+    def _get_fixed_cells(self):
+        fixed_cells = []
+        for row in range(9):
+            for col in range(9):
+                if self.field[row][col] != 0:
+                    fixed_cells.append((row, col)) # если ячейка не пустая, то она фиксированная (надо допилить оптимизацию на клетки с 1 кандидатом)
+        return fixed_cells
+        
     def run(self):
         pass
 
