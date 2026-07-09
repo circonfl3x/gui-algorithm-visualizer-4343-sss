@@ -1,6 +1,7 @@
 import generate_field as gf
 import random
 import copy
+import time
 
 MUTATION_RATE = 0.2
 CROSSOVER_RATE = 0.8
@@ -148,9 +149,8 @@ class GeneticAlgorithm:
             matrix[row_1][col_1], matrix[row_2][col_2] = matrix[row_2][col_2], matrix[row_1][col_1]
 
 
-    def run(self):
-        for generation in range(self.max_generations):
-            print(f"Generation: {generation+1}")
+    def run(self):      
+        for generation in range(self.max_generations): # в среднем обработка одного поколения занимает 0.5 сек, это значит, что 1000 поколений займет 500 секунд...
 
             for popul in self.populations:
 
@@ -183,7 +183,7 @@ class GeneticAlgorithm:
                     nxt_generation.append(child2)
 
                 popul.Individuals = nxt_generation
-                
+
                 
 
                     
