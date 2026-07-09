@@ -98,7 +98,24 @@ class GeneticAlgorithm:
                 if self.field[row][col] != 0:
                     fixed_cells.append((row, col)) # если ячейка не пустая, то она фиксированная (надо допилить оптимизацию на клетки с 1 кандидатом)
         return fixed_cells
+
+    def _crossover(self, matrix1, matrix2):
+        chances = [random.randint(0,1) for i in range (9)] # какие 3х3 блоки меняем, а какие нет (нумерация 0-8)
+
+        new_matrix1 = copy.deepcopy(matrix1) # надо оптимизировать память... но иначе не знаю как сохранять матрицы родителей для других клонирований (мб удалять их на каждом переходе к обработке другого поколения, тогда как реализовать шаги назад вперед в GUI? вопрос открыт)
+        new_matrix2 = copy.deepcopy(matrix2)
         
+        for row in range(9):
+            for col in range(9):
+                which_square = (row//3) * 3 + col//3 # логика: считаем в каком блоке находится клетка, в зависимости от значения в chancrs меняем эти блоки у матриц или нет.
+                if chances[which_square] == 1:
+                    new_matrix1[row][col], new_matrix2[row][col] = new_matrix2[row][col], new_matrix1[row][col]
+                else:
+                    continue
+
+        return new_matrix1, new_matrix2
+
+
     def run(self):
         pass
 
