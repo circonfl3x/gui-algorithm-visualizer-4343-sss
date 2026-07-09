@@ -2,12 +2,9 @@
 ## How to run
 Web gui starts with command:
  `streamlit run gui.py`
-## Deployment
-The deployed web GUI is available at https://sudoku.enarwi.ru/
 ## Dependencies
 - streamlit
 - starlette
 - plotly
 - dokusan
 - uvicorn, itsdangerous (должны быть установлен с streamlit?)
-- pillow

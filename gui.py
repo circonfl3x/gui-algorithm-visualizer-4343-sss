@@ -1,6 +1,6 @@
 import streamlit as st
 from plot_template import create_fitness_plot
-from sudoku_solver import sudoku_io
+from sudoku_solver import generate_field
 st.set_page_config(page_title="Sudoku GA", layout="wide")
 
 #st.header("Решение судоку")
@@ -9,11 +9,6 @@ main_col1, main_col2 = st.columns([1,4])
 with main_col1:
     with st.container(border=True, horizontal_alignment="center"):
         st.subheader("Параметры алгоритма", text_alignment="center")
-        population_count = st.slider(
-            "Количество популяций",
-            min_value=1,
-            max_value=20
-        )
         population_size = st.slider(
             "Размер популяции",
             min_value=50, max_value=1000, value=100)
@@ -31,8 +26,8 @@ with main_col1:
         st.subheader("Управление", text_alignment="center")
         with st.container():
             if st.button("Новый паззл", width="stretch", type="primary"):
-                field = sudoku_io.generate_puzzle()
-                img = sudoku_io.field_to_img(field[1])
+                field = generate_field.generate_puzzle()
+                img = generate_field.field_to_img(field[1])
                 img.save("sudoku_solver/puzzle.png")
             button_col1, button_col2, button_col3, button_col4 = st.columns(4)
             with button_col1:
@@ -52,7 +47,7 @@ with main_col2:
     with sudoku_col1:
         with st.container(border=True):
             st.subheader("Исходное поле судоку", text_alignment="center")
-            st.image("sudoku_solver/puzzle.png")
+            st.image("sudoku_solver/puzzle.png") # TODO sudoku view
 
     with sudoku_col2:
         with st.container(border=True):
