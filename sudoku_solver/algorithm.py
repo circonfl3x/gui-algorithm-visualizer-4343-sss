@@ -122,13 +122,13 @@ class GeneticAlgorithm:
 
         variants = []
 
-        for i in range(row, row+3):
+        for i in range(row, row+3): # собираем все нефиксированные клетки в это блоке
             for j in range(col, col+3):
                 if (i,j) not in self.fixed_cells:
                     variants.append((i,j))
         
         if len(variants) >1:
-            random.shuffle(variants)
+            random.shuffle(variants) # перемешиваем и берем первые два элемента, их переставляем местами
             
             row_1 = variants[0][0]
             col_1 = variants[0][1]
