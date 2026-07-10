@@ -23,6 +23,7 @@ class GeneticAlgorithm:
             for _ in range(population_count)
         ]   
         self.fixed_cells = self._get_fixed_cells()
+        
 
     def _get_fixed_cells(self):
         fixed_cells = []
