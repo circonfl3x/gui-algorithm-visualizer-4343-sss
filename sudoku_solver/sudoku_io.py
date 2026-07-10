@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 from os import sys
 
 def generate_puzzle():
-    field = generators.random_sudoku(avg_rank=10)
+    field = generators.random_sudoku(avg_rank=30)
     field_np = np.array(list(str(field)), dtype=int).reshape(9, 9)
 
     return field, field_np
