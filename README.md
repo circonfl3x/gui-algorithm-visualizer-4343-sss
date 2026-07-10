@@ -11,3 +11,4 @@ The deployed web GUI is available at https://sudoku.enarwi.ru/
 - dokusan
 - uvicorn, itsdangerous (должны быть установлен с streamlit?)
 - pillow
+- numpy 
