@@ -9,7 +9,7 @@ from sudoku_solver.sudoku_io import generate_puzzle as gf
 class GeneticAlgorithm:
 
     def __init__(self, field, population_count=10, population_size=100, max_generations=1000, mutation_rate=0.2, crossover_rate=0.8):
-        self.field = field
+        self.field = copy.deepcopy(field)
         self.current_generation = 0
         self.solved = False
         self.solution = None
@@ -18,7 +18,10 @@ class GeneticAlgorithm:
         self.max_generations = max_generations
         self.mutation_rate = mutation_rate
         self.crossover_rate = crossover_rate
-        self.populations = [Population(field, population_size) for _ in range(population_count)]
+        self.populations = [
+            Population(copy.deepcopy(self.field), population_size)
+            for _ in range(population_count)
+        ]   
         self.fixed_cells = self._get_fixed_cells()
 
     def _get_fixed_cells(self):
@@ -67,25 +70,36 @@ class GeneticAlgorithm:
 
             matrix[row_1][col_1], matrix[row_2][col_2] = matrix[row_2][col_2], matrix[row_1][col_1]
 
-    def get_best_individual(self):
+    def get_generation_stats(self):
         best_individual = None
         best_fitness = float("inf")
+        all_fitnesses = []
 
         for popul in self.populations:
             popul.update()
 
-            if popul.fittest < best_fitness:
-                best_fitness = popul.fittest
-                best_individual = popul.answer
+            for individual in popul.Individuals:
+                fitness = individual.fitness
+                all_fitnesses.append(fitness)
 
-        return best_individual, best_fitness
+                if fitness < best_fitness:
+                    best_fitness = fitness
+                    best_individual = individual
+
+        if not all_fitnesses:
+            raise ValueError("Нет особей для расчета fitness")
+
+        avg_fitness = sum(all_fitnesses) / len(all_fitnesses)
+
+        return best_individual, best_fitness, avg_fitness
     
     def get_snapshot(self):
-        best_individual, best_fitness = self.get_best_individual()
+        best_individual, best_fitness, avg_fitness = self.get_generation_stats()
 
         return {
             "generation": self.current_generation,
             "best_fitness": best_fitness,
+            "avg_fitness": avg_fitness,
             "matrix": copy.deepcopy(best_individual.currentMatrix),
             "solved": best_fitness == 0,
         }

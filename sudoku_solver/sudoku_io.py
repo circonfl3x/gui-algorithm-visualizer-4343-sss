@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 from os import sys
 
 def generate_puzzle():
-    field = generators.random_sudoku(avg_rank=100)
+    field = generators.random_sudoku(avg_rank=10)
     field_np = np.array(list(str(field)), dtype=int).reshape(9, 9)
 
     return field, field_np
@@ -66,7 +66,15 @@ def field_from_file(filename):
     return field
 
 
-def field_to_img(field_np, cell_size=60, line_color = 'black', text_color='black', bg='white'): # 0.114502... - Время выполнения
+def field_to_img(
+        field_np,
+        cell_size=60,
+        line_color = 'white',
+        text_color='white',
+        generated_text_color='red',
+        bg='black',
+        fixed_cells=None):
+    field_np = np.array(field_np)
     width = height = cell_size * 9
     img = Image.new('RGB', (width,height), color=bg)
     draw = ImageDraw.Draw(img)
@@ -75,22 +83,27 @@ def field_to_img(field_np, cell_size=60, line_color = 'black', text_color='black
     #Grid lines
 
     for i in range(10):
-        line_width = 4 if i % 3 == 0 else 1 # TODO: на каждой 3-й границей рисовать жирнее линию чтоб
-                        # он будет похоже на настояшую доску судоку
+        line_width = 4 if i % 3 == 0 else 1
         pos = i * cell_size
 
         draw.line([(pos, 0), (pos, height)], fill=line_color, width=line_width)
         draw.line([(0, pos), (width, pos)], fill=line_color, width=line_width)
 
-    # Numbers
-    for i in range(10):
-        for rows in range(9):
-            for cols in range(9):
-                val = field_np[rows, cols]
-                if val != 0:
-                    # TODO: Убирать magic numbers и считать правильный позицию изпользуя bbox вроде
-                    x = (cols*cell_size) + (cell_size // 2) - 10
-                    y = (rows*cell_size) - (cell_size) + 10
+# Numbers
+    fixed_cells = fixed_cells or set()
+    for row in range(9):
+        for col in range(9):
+            val = field_np[row, col]
+            if val != 0:
+                text = str(val)
 
-                    draw.text((x,y), str(val), fill=text_color, font=font)
+                bbox = draw.textbbox((0,0), text, font=font)
+                text_width = bbox[2] - bbox[0]
+                text_height = bbox[3] - bbox[1]
+
+                x = col * cell_size + (cell_size - text_width) / 2
+                y = row * cell_size + (cell_size - text_height) / 2 - 2
+
+                color = text_color if (row, col) in fixed_cells else generated_text_color
+                draw.text((x, y), text, fill=color, font=font)
     return img
