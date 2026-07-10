@@ -81,8 +81,8 @@ def step_back():
 def add_fitness_point(snapshot, force=False):
     generation = snapshot["generation"]
 
-    if not force and generation % 50 != 0:
-        return
+#    if not force and generation % 50 != 0:
+#        return
 
     if "fitness_history" not in st.session_state:
         st.session_state.fitness_history = []
