@@ -1,4 +1,4 @@
-import generate_field as gf
+import sudoku_io as gf
 import random
 import copy
 import time
@@ -21,14 +21,53 @@ class Individual:
         self._fill_empty_cells()
         self._calculate_fitness()
 
-    def _fill_empty_cells(self): # оптимизировать, чтобы не было повторов в столбцах и блоках 3x3
-        for row in range(9):
-            empty = [n for n in range(1,10) if n not in self.currentMatrix[row]]
-            random.shuffle(empty) # nice hack)
+    def _check_row(self, row_num):
+        # возвращает все числа, отсутстувующие из данной строки
+        return {n for n in range(1,10) if n not in self.currentMatrix[row_num]}
+        
+    def _check_column(self, col_num):
+        # как сверху но для столбец
+        free = set()
+        for rows in range(0,9):
+            if self.currentMatrix[rows][col_num] != 0:
+                free.add(self.currentMatrix[rows][col_num])
+        return {n for n in range(1,10) if n not in free}
 
-            for col in range(9):
-                if self.currentMatrix[row][col] == 0:
-                    self.currentMatrix[row][col] = empty.pop()
+    def _check_box(self, row, col):
+        # Возвращает все числа, отсутствующие из данной 3х3 квадрати, дана какая нибудь точку
+        free = set()
+        begin_row = row//3*3
+        begin_col = col//3*3
+
+        for x in range(begin_row, begin_row+3):
+            for y in range(begin_col, begin_col+3):
+                if self.currentMatrix[x][y] != 0:
+                    free.add(self.currentMatrix[x][y])
+        return {n for n in range(1,10) if n not in free}
+    def _fill_empty_cells(self): # DONE: оптимизировать, чтобы не было повторов в столбцах и блоках 3x3
+
+        for rows in range(0,9,3):
+            for cols in range(0,9,3):
+                for r in range(rows, rows+3):
+                    free_row = self._check_row(r)
+                    rlist = list(free_row)
+                    for c in range(cols, cols+3):
+                        free_column = self._check_column(c)
+                        clist = list(free_column)
+                        if self.currentMatrix[r][c] == 0:
+                            free_box = self._check_box(r, c)
+                            free = list(free_row.intersection(free_column, free_box))
+                            if not free:
+                                # raise ValueError("No common elements so matrix couldn't be filled!")
+                                random.shuffle(rlist)
+                                random.shuffle(clist)
+                                self.currentMatrix[r][c] = rlist.pop() if rlist else clist.pop()
+                            else:
+                                random.shuffle(free)
+                                self.currentMatrix[r][c] = free[0]
+                            
+                                                      
+                            
 
     def _calculate_fitness(self):
         conflicts = 0 # Тем ниже конфликты, тем лучше. Если конфликт = 0, значит это
@@ -186,14 +225,18 @@ class GeneticAlgorithm:
 
                 
 
-                    
+                 
 
 
-
+# def test():
+    # _, field = gf.generate_puzzle()
+    # p = Individual(field.tolist())
+    # for i in p.currentMatrix:
+        # print(i)
 
 
 if __name__ == "__main__":
     _, field = gf.generate_puzzle()
     ga = GeneticAlgorithm(field, population_count=POPULATION_COUNT, population_size=POPULATION_SIZE, max_generations=MAX_GENERATIONS, mutation_rate=MUTATION_RATE, crossover_rate=CROSSOVER_RATE)
     ga.run()
-    
+
