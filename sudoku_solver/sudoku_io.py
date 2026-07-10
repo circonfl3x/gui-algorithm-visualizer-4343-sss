@@ -15,7 +15,6 @@ def get_solution(field):
     solution_np = np.array(list(str(solution)), dtype=int).reshape(9, 9)
 
     return solution, solution_np
-
 def field_from_input():
     field = []
     line_num = 0
