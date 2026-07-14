@@ -180,7 +180,7 @@ class GeneticAlgorithm:
                     nxt_generation.append(child1)
                     nxt_generation.append(child2)
 
-                if popul.fittest <= start_best_fitness:
+                if popul.fittest >= start_best_fitness:
                     popul.equal_fitness_count += 1
                 else:
                     popul.equal_fitness_count = 0
