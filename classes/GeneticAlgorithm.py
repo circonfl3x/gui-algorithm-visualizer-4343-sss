@@ -118,7 +118,10 @@ class GeneticAlgorithm:
             "solved": self.solved,
             "matrix": copy.deepcopy(best_individual.currentMatrix),
         }
-    
+
+    def _tournament_selection(self, population_individuals, tournament_size=10):
+            tournament = random.sample(population_individuals, tournament_size)
+            return min(tournament, key=lambda x: x.fitness) 
 
     def step(self):
         if self.solved or (self.current_generation >= self.max_generations):
@@ -138,8 +141,6 @@ class GeneticAlgorithm:
                 print("Solution found")
                 return popul.answer.currentMatrix
 
-            weights=[(81 - i.fitness)/(81*self.population_size - sum(popul.fitnesses)) for i in popul.Individuals] # это расчет вероятности выбора особо в кач-ве родителя (кол-во верных клеток делить на кол-во верных клеток во всей популяции)
-
             sorted_individuals = sorted(popul.Individuals, key=lambda x: x.fitness) # сортируем особей по убыванию их приспособленности
 
             nxt_generation.append(sorted_individuals[0]) 
@@ -152,22 +153,29 @@ class GeneticAlgorithm:
                 popul.Individuals = nxt_generation
 
             else:
+                current_mut_rate = self.mutation_rate
+                mutations_count = 1
+                if popul.equal_fitness_count > 10:
+                    current_mut_rate = min(0.8, self.mutation_rate*2) # повышаем шанс мутации
+                    mutations_count = 2
 
                 for i in range(self.population_size//2 - 1):
-                    parents = random.choices(popul.Individuals, weights=weights, k=2) # выбираем две случ особи с учетом вероятности расчитанной выше
-
+                    parent1 = self._tournament_selection(popul.Individuals)
+                    parent2 = self._tournament_selection(popul.Individuals)
                     if random.random() < self.crossover_rate:
-                        new_matrix1, new_matrix2 = self._crossover(parents[0].currentMatrix, parents[1].currentMatrix)
+                        new_matrix1, new_matrix2 = self._crossover(parent1.currentMatrix, parent2.currentMatrix)
                         child1 = Individual(new_matrix1)
                         child2 = Individual(new_matrix2)
                     else:
-                        child1 = Individual(copy.deepcopy(parents[0].currentMatrix))
-                        child2 = Individual(copy.deepcopy(parents[1].currentMatrix))
+                        child1 = Individual(copy.deepcopy(parent1.currentMatrix))
+                        child2 = Individual(copy.deepcopy(parent2.currentMatrix))
 
-                    if random.random() < self.mutation_rate: # вынес шанс мутации за функцию
-                        self._mutatation(child1.currentMatrix) 
-                    if random.random() < self.mutation_rate:
-                        self._mutatation(child2.currentMatrix)
+                    if random.random() < current_mut_rate: 
+                        for _ in range(mutations_count): # делаем несколько мутаций подряд
+                            self._mutatation(child1.currentMatrix) 
+                    if random.random() < current_mut_rate:
+                        for _ in range(mutations_count):
+                            self._mutatation(child2.currentMatrix)
 
                     nxt_generation.append(child1)
                     nxt_generation.append(child2)
