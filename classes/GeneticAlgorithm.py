@@ -48,26 +48,85 @@ class GeneticAlgorithm:
         return new_matrix1, new_matrix2
 
     def _mutatation(self, matrix):
-        random_3x3 = random.randint(0, 8) # выбираем случайный блок 3х3
-        row = random_3x3//3 * 3
-        col = random_3x3%3 * 3
+        error_rows = []
+        error_cols = []
 
-        variants = []
+        for i in range(9): 
+            seen = []
+            for j in range(9):
+                val = matrix[i][j]
+                if val in seen:
+                    error_rows.append(i)
+                    break
+                seen.append(val)
 
-        for i in range(row, row+3): # собираем все нефиксированные клетки в это блоке
-            for j in range(col, col+3):
-                if (i,j) not in self.fixed_cells:
-                    variants.append((i,j))
-        
-        if len(variants) >1:
-            random.shuffle(variants) # перемешиваем и берем первые два элемента, их переставляем местами
+        for j in range(9):
+            seen = []
+            for i in range(9):
+                val = matrix[i][j]
+                if val in seen:
+                    error_cols.append(j)
+                    break
+                seen.append(val)
+
+        if len(error_rows) == 0 and len(error_cols) == 0:
+            return 
+
+        is_row = True
+        if len(error_rows) > 0 and len(error_cols) > 0:
+            if random.random() < 0.5:
+                is_row = True
+            else:
+                is_row = False
+        elif len(error_cols) > 0:
+            is_row = False
+
+        if is_row:
+            row = random.choice(error_rows)
+            seen = []
+            duplicates = []
+            for c in range(9):
+                val = matrix[row][c]
+                if val in seen and val not in duplicates:
+                    duplicates.append(val)
+                seen.append(val)
+                
+            target_val = random.choice(duplicates)
+            possible_cols = []
+            for c in range(9):
+                if matrix[row][c] == target_val:
+                    possible_cols.append(c)
+            col = random.choice(possible_cols)
             
-            row_1 = variants[0][0]
-            col_1 = variants[0][1]
-            row_2 = variants[1][0]
-            col_2 = variants[1][1]
+        else:
+            col = random.choice(error_cols)
+            seen = []
+            duplicates = []
+            for r in range(9):
+                val = matrix[r][col]
+                if val in seen and val not in duplicates:
+                    duplicates.append(val)
+                seen.append(val)
+                
+            target_val = random.choice(duplicates)
+            possible_rows = []
+            for r in range(9):
+                if matrix[r][col] == target_val:
+                    possible_rows.append(r)
+            row = random.choice(possible_rows)
 
-            matrix[row_1][col_1], matrix[row_2][col_2] = matrix[row_2][col_2], matrix[row_1][col_1]
+        b_row = (row//3)* 3
+        b_col = (col//3)* 3
+        
+        variants = []
+        for i in range(b_row, b_row + 3):
+            for j in range(b_col, b_col + 3):
+                if (i, j) not in self.fixed_cells:
+                    if i != row or j != col: 
+                        variants.append((i, j))
+        if len(variants) > 0:
+            swap_r, swap_c = random.choice(variants)
+            matrix[swap_r][swap_c], matrix[row][col] = matrix[row][col], matrix[swap_r][swap_c]
 
     def get_generation_stats(self):
         best_individual = None
