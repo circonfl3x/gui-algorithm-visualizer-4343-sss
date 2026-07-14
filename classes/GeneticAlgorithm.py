@@ -132,7 +132,7 @@ class GeneticAlgorithm:
             nxt_generation.append(sorted_individuals[2])
             nxt_generation.append(sorted_individuals[3]) 
 
-            if popul.equal_fitness_count > 100: # если за 100 поколений не было улучшения, то пересоздаем популяцию
+            if popul.equal_fitness_count > 50: # если за 50 поколений не было улучшения, то пересоздаем популяцию
                 new_population = Population(self.field, self.population_size)
                 nxt_generation += new_population.Individuals[4:]
                 popul.equal_fitness_count = 0
