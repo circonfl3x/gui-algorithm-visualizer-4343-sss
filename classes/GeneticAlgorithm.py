@@ -186,6 +186,13 @@ class GeneticAlgorithm:
                     popul.equal_fitness_count = 0
 
                 popul.Individuals = nxt_generation
+        if self.current_generation%20 ==0 and self.population_count > 1: # каждые 20 поколений делаем обмен лучшими особями между популяциями
+            for i in range(self.population_count):
+                best_ind = min(self.populations[i].Individuals, key=lambda x: x.fitness)
+                
+                next_pop_idx = (i+1)%self.population_count # берем следующую популяцию по кругу, чтобы вставить в нее лучшую особь из текущей популяции
+                worst_idx = max(range(self.population_size), key=lambda j: self.populations[next_pop_idx].Individuals[j].fitness) # находим индекс худшей особи в следующей популяции
+                self.populations[next_pop_idx].Individuals[worst_idx] = Individual(copy.deepcopy(best_ind.currentMatrix)) # заменяем худшую особь в следующей популяции на лучшую из текущей
         snapshot = self.get_snapshot()
 
         if snapshot["solved"]:
