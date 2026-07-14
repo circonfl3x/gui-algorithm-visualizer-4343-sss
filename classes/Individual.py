@@ -1,4 +1,5 @@
 import random
+import statistics
 class Individual:
     def __init__(self, field):
         # self.id = random.randInt(1000,9999)
@@ -7,7 +8,6 @@ class Individual:
         # self.population
         self._fill_empty_cells()
         self._calculate_fitness()
-
     def _fill_empty_cells_old(self): # оптимизировать, чтобы не было повторов в столбцах и блоках 3x3
         for row in range(9):
             empty = [n for n in range(1,10) if n not in self.currentMatrix[row]]

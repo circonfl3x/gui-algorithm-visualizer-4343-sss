@@ -17,13 +17,14 @@ class GeneticAlgorithm:
         self.population_size = population_size
         self.max_generations = max_generations
         self.mutation_rate = mutation_rate
+        self.mutation_rate_og = mutation_rate
         self.crossover_rate = crossover_rate
+        self.raise_mutation = False # Если верно, повышаем кол-во мутации для несколких итерации
         self.populations = [
             Population(copy.deepcopy(self.field), population_size)
             for _ in range(population_count)
         ]   
         self.fixed_cells = self._get_fixed_cells()
-        
 
     def _get_fixed_cells(self):
         fixed_cells = []
@@ -77,13 +78,14 @@ class GeneticAlgorithm:
         all_fitnesses = []
 
         for popul in self.populations:
-            popul.update()
-
+            if popul.update() == False:
+                self.mutation_rate = 0.4
+            
             for individual in popul.Individuals:
                 fitness = individual.fitness
                 all_fitnesses.append(fitness)
 
-                if fitness < best_fitness:
+                if fitness <= best_fitness: # Сравнение надо поменять от < до <= чтоб проверить С.О. (так вроде легче)
                     best_fitness = fitness
                     best_individual = individual
 
@@ -157,13 +159,18 @@ class GeneticAlgorithm:
 
     def run(self):
         snapshot = self.get_snapshot()
-
+        round = 0
         while not self.solved and self.current_generation < self.max_generations:
             snapshot = self.step()
-
+            
+                
             if snapshot["solved"]:
                 return snapshot
-
+            if self.mutation_rate != self.mutation_rate_og:
+                round += 1
+            if round == 5:
+                round = 0
+                self.mutation_rate = self.mutation_rate_og
         return snapshot
 
 MUTATION_RATE = 0.2
