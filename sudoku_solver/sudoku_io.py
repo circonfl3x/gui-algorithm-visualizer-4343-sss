@@ -4,8 +4,8 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from os import sys
 
-def generate_puzzle():
-    field = generators.random_sudoku(avg_rank=30)
+def generate_puzzle(complexity):
+    field = generators.random_sudoku(avg_rank=complexity)
     field_np = np.array(list(str(field)), dtype=int).reshape(9, 9)
 
     return field, field_np
@@ -35,36 +35,53 @@ def field_from_input():
         field.append(row)
     return field
     
-def field_from_file(filename):
+def field_from_file(uploaded_file):
     field = []
-    line_num = 0
+
+    if uploaded_file is None:
+        raise ValueError("Файл не выбран")
 
     try:
-        with open(filename, 'r') as file:
-            
-            for line in file:
-                line_num += 1
-                if line_num > 9:
-                    break
+        content = uploaded_file.getvalue().decode("utf-8-sig")
+    except UnicodeDecodeError:
+        raise ValueError("Файл должен быть текстовым в кодировке UTF-8")
 
-                line = line.strip()
+    for line_num, line in enumerate(content.splitlines(), start=1):
+        line = line.strip()
 
-                if not line:
-                    continue
+        if not line:
+            continue
 
-                row = [int(x) for x in line.split()]
+        if len(field) >= 9:
+            raise ValueError("В файле должно быть ровно 9 непустых строк")
 
-                if(len(row) != 9):
-                    raise ValueError("Row should be 9 digits long")
+        try:
+            row = [int(value) for value in line.split()]
+        except ValueError:
+            raise ValueError(
+                f"Строка {line_num} содержит нецелое значение"
+            )
 
-                for i in row:
-                    if i < 0 or i>9:
-                        raise ValueError(f"Element on position {i+1}, line {line_num+1} is out of range")
-                field.append(row)
-    except FileNotFoundError as f:
-        print(f"file {filename} not found")
+        if len(row) != 9:
+            raise ValueError(
+                f"В строке {line_num} должно быть ровно 9 чисел"
+            )
+
+        for column_num, value in enumerate(row, start=1):
+            if not 0 <= value <= 9:
+                raise ValueError(
+                    f"Значение в строке {line_num}, "
+                    f"столбце {column_num} должно быть от 0 до 9"
+                )
+
+        field.append(row)
+
+    if len(field) != 9:
+        raise ValueError(
+            f"В файле должно быть 9 непустых строк, получено: {len(field)}"
+        )
+
     return field
-
 
 def field_to_img(
         field_np,

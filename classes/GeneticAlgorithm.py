@@ -4,8 +4,6 @@ from classes.Population import Population
 from classes.Individual import Individual
 import random
 
-from sudoku_solver.sudoku_io import generate_puzzle as gf
-
 class GeneticAlgorithm:
 
     def __init__(self, field, population_count=10, population_size=100, max_generations=1000, mutation_rate=0.2, crossover_rate=0.8):
@@ -95,16 +93,33 @@ class GeneticAlgorithm:
         return best_individual, best_fitness, avg_fitness
     
     def get_snapshot(self):
-        best_individual, best_fitness, avg_fitness = self.get_generation_stats()
+        best_population = min(
+            self.populations,
+            key=lambda population: population.fittest,
+        )
+
+        best_individual = min(
+            best_population.Individuals,
+            key=lambda individual: individual.fitness,
+        )
+
+        population_fitness = [
+            population.fittest
+            for population in self.populations
+        ]
 
         return {
             "generation": self.current_generation,
-            "best_fitness": best_fitness,
-            "avg_fitness": avg_fitness,
+            "best_fitness": best_population.fittest,
+            "avg_fitness": (
+                sum(population_fitness) / len(population_fitness)
+            ),
+            "population_fitness": population_fitness,
+            "solved": self.solved,
             "matrix": copy.deepcopy(best_individual.currentMatrix),
-            "solved": best_fitness == 0,
         }
     
+
     def step(self):
         if self.solved or (self.current_generation >= self.max_generations):
             return self.get_snapshot()
@@ -164,18 +179,4 @@ class GeneticAlgorithm:
             if snapshot["solved"]:
                 return snapshot
 
-        return snapshot
-
-MUTATION_RATE = 0.2
-CROSSOVER_RATE = 0.8
-
-POPULATION_COUNT = 10
-POPULATION_SIZE = 100
-
-MAX_GENERATIONS = 1000          
-
-if __name__ == "__main__":
-    _, field = gf()
-    ga = GeneticAlgorithm(field, population_count=POPULATION_COUNT, population_size=POPULATION_SIZE, max_generations=MAX_GENERATIONS, mutation_rate=MUTATION_RATE, crossover_rate=CROSSOVER_RATE)
-    ga.run()
-    
+        return snapshot    

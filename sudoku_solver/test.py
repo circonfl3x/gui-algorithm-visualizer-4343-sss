@@ -104,7 +104,7 @@ def count_collisions(field):
     
     return collisions
 
-field = io.generate_puzzle()
+field = io.generate_puzzle(30)
 
 print(field[1])
 f = field[1].tolist()
