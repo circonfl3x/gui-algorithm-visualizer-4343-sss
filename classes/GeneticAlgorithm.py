@@ -73,39 +73,57 @@ class GeneticAlgorithm:
                 nxt_generation = []
 
                 popul.update()
+
+                start_best_fitness = popul.fittest
+
                 if popul.fittest == 0:
                     print("Solution found")
                     return popul.answer.currentMatrix
 
                 weights=[(81 - i.fitness)/(81*self.population_size - sum(popul.fitnesses)) for i in popul.Individuals] # это расчет вероятности выбора особо в кач-ве родителя (кол-во верных клеток делить на кол-во верных клеток во всей популяции)
 
-                sorted_individuals = sorted(popul.Individuals, key=lambda x: 81-x.fitness) # сортируем особей по убыванию их приспособленности
+                sorted_individuals = sorted(popul.Individuals, key=lambda x: x.fitness) # сортируем особей по убыванию их приспособленности
 
                 nxt_generation.append(sorted_individuals[0]) 
                 nxt_generation.append(sorted_individuals[1])
                 nxt_generation.append(sorted_individuals[2])
                 nxt_generation.append(sorted_individuals[3]) 
 
-                for i in range(self.population_size//2 - 2):
-                    parents = random.choices(popul.Individuals, weights=weights, k=2) # выбираем две случ особи с учетом вероятности расчитанной выше
+                if popul.equal_fitness_count > 100: # если за 100 поколений не было улучшения, то пересоздаем популяцию
+                    new_population = Population(self.field, self.population_size)
+                    nxt_generation += new_population.Individuals[4:]
+                    popul.equal_fitness_count = 0
+                    popul.Individuals = nxt_generation
 
-                    if random.random() < self.crossover_rate:
-                        new_matrix1, new_matrix2 = self._crossover(parents[0].currentMatrix, parents[1].currentMatrix)
-                        child1 = Individual(new_matrix1)
-                        child2 = Individual(new_matrix2)
+                else:
+
+                    
+
+                    for i in range(self.population_size//2 - 2):
+                        parents = random.choices(popul.Individuals, weights=weights, k=2) # выбираем две случ особи с учетом вероятности расчитанной выше
+
+                        if random.random() < self.crossover_rate:
+                            new_matrix1, new_matrix2 = self._crossover(parents[0].currentMatrix, parents[1].currentMatrix)
+                            child1 = Individual(new_matrix1)
+                            child2 = Individual(new_matrix2)
+                        else:
+                            child1 = Individual(copy.deepcopy(parents[0].currentMatrix))
+                            child2 = Individual(copy.deepcopy(parents[1].currentMatrix))
+
+                        if random.random() < self.mutation_rate: # вынес шанс мутации за функцию
+                            self._mutatation(child1.currentMatrix) 
+                        if random.random() < self.mutation_rate:
+                            self._mutatation(child2.currentMatrix)
+
+                        nxt_generation.append(child1)
+                        nxt_generation.append(child2)
+
+                    if popul.fittest <= start_best_fitness:
+                        popul.equal_fitness_count += 1
                     else:
-                        child1 = Individual(copy.deepcopy(parents[0].currentMatrix))
-                        child2 = Individual(copy.deepcopy(parents[1].currentMatrix))
+                        popul.equal_fitness_count = 0
 
-                    if random.random() < self.mutation_rate: # вынес шанс мутации за функцию
-                        self._mutatation(child1.currentMatrix) 
-                    if random.random() < self.mutation_rate:
-                        self._mutatation(child2.currentMatrix)
-
-                    nxt_generation.append(child1)
-                    nxt_generation.append(child2)
-
-                popul.Individuals = nxt_generation
+                    popul.Individuals = nxt_generation
 
 MUTATION_RATE = 0.2
 CROSSOVER_RATE = 0.8
