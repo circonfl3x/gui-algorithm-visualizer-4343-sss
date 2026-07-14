@@ -39,61 +39,38 @@ class Individual:
                 if self.currentMatrix[x][y] != 0:
                     free.add(self.currentMatrix[x][y])
         return {n for n in range(1,10) if n not in free}
-    def _fill_empty_cells(self): # DONE: оптимизировать, чтобы не было повторов в столбцах и блоках 3x3
-
-        for rows in range(0,9,3):
-            for cols in range(0,9,3):
-                for r in range(rows, rows+3):
-                    free_row = self._check_row(r)
-                    rlist = list(free_row)
-                    for c in range(cols, cols+3):
-                        free_column = self._check_column(c)
-                        clist = list(free_column)
-                        if self.currentMatrix[r][c] == 0:
-                            free_box = self._check_box(r, c)
-                            free = list(free_row.intersection(free_column, free_box))
-                            if not free:
-                                # raise ValueError("No common elements so matrix couldn't be filled!")
-                                random.shuffle(rlist)
-                                random.shuffle(clist)
-                                self.currentMatrix[r][c] = rlist.pop() if rlist else clist.pop()
-                            else:
-                                random.shuffle(free)
-                                self.currentMatrix[r][c] = free[0]
     
-    def _calculate_fitness(self):
-        conflicts = 0 # Тем ниже конфликты, тем лучше. Если конфликт = 0, значит это
-                        # действительное решение
-        for row in range(9):
-            seen_row = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
-
-            for col in range(9):
-                seen_row[str(self.currentMatrix[row][col])] = seen_row.get(str(self.currentMatrix[row][col]), 0) + 1
-            
-            for count in seen_row.values():
-                if count > 1:
-                    conflicts += count  # число встретилось не один раз => каждое число конфилктное
-
-        for col in range(9):
-            seen_col = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
-
-            for row in range(9):
-                seen_col[str(self.currentMatrix[row][col])] = seen_col.get(str(self.currentMatrix[row][col]), 0) + 1
-
-            for count in seen_col.values():
-                if count > 1:
-                    conflicts += count  # число встретилось не один раз => каждое число конфилктное
-
-        # надо тоже отдельно проверить каждую 3x3 площадку
+    def _fill_empty_cells(self): # DONE: оптимизировать, чтобы не было повторов в блоках 3x3
         for b_row in range(3):
             for b_col in range(3):
-                seen_col = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
-                for row in range(b_row*3, (b_row+1)*3):
-                    for col in range(b_col*3, (b_col+1)*3):
-                        seen_col[str(self.currentMatrix[row][col])] = seen_col.get(str(self.currentMatrix[row][col]), 0) + 1
-
-                for count in seen_col.values():
-                    if count > 1:
-                        conflicts += count  # число встретилось не один раз => каждое число конфилктное
-        
+                existing_numbers = set()
+                for i in range(3):
+                    for j in range(3):
+                        val = self.currentMatrix[b_row * 3+i][b_col *3+j]
+                        if val != 0:
+                            existing_numbers.add(val)
+                missing_numbers = list(set(range(1, 10)) - existing_numbers)
+                random.shuffle(missing_numbers)
+                for i in range(3):
+                    for j in range(3):
+                        if self.currentMatrix[b_row * 3+i][b_col * 3+j] == 0:
+                            self.currentMatrix[b_row * 3+i][b_col * 3+j] = missing_numbers.pop()
+    
+    def _calculate_fitness(self):
+        conflicts = 0 
+        for i in range(9):
+            row_seen = set()
+            col_seen = set()
+            for j in range(9):
+                row_val = self.currentMatrix[i][j]
+                if row_val in row_seen:
+                    conflicts += 1
+                else:
+                    row_seen.add(row_val)       
+                col_val = self.currentMatrix[j][i]
+                if col_val in col_seen:
+                    conflicts += 1
+                else:
+                    col_seen.add(col_val)
+                    
         self.fitness = conflicts
