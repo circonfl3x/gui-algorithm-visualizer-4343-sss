@@ -144,18 +144,16 @@ class GeneticAlgorithm:
 
             nxt_generation.append(sorted_individuals[0]) 
             nxt_generation.append(sorted_individuals[1])
-            nxt_generation.append(sorted_individuals[2])
-            nxt_generation.append(sorted_individuals[3]) 
 
             if popul.equal_fitness_count > 50: # если за 50 поколений не было улучшения, то пересоздаем популяцию
                 new_population = Population(self.field, self.population_size)
-                nxt_generation += new_population.Individuals[4:]
+                nxt_generation += new_population.Individuals[2:]
                 popul.equal_fitness_count = 0
                 popul.Individuals = nxt_generation
 
             else:
 
-                for i in range(self.population_size//2 - 2):
+                for i in range(self.population_size//2 - 1):
                     parents = random.choices(popul.Individuals, weights=weights, k=2) # выбираем две случ особи с учетом вероятности расчитанной выше
 
                     if random.random() < self.crossover_rate:
