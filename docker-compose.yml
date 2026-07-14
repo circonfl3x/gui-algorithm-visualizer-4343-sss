@@ -1,0 +1,7 @@
+services:
+  sudoku-app:
+    build: .
+    container_name: sudoku-app
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
