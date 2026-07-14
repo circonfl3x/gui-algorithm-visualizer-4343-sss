@@ -79,7 +79,14 @@ class GeneticAlgorithm:
 
                 weights=[(81 - i.fitness)/(81*self.population_size - sum(popul.fitnesses)) for i in popul.Individuals] # это расчет вероятности выбора особо в кач-ве родителя (кол-во верных клеток делить на кол-во верных клеток во всей популяции)
 
-                for i in range(self.population_size//2):
+                sorted_individuals = sorted(popul.Individuals, key=lambda x: 81-x.fitness) # сортируем особей по убыванию их приспособленности
+
+                nxt_generation.append(sorted_individuals[0]) 
+                nxt_generation.append(sorted_individuals[1])
+                nxt_generation.append(sorted_individuals[2])
+                nxt_generation.append(sorted_individuals[3]) 
+
+                for i in range(self.population_size//2 - 2):
                     parents = random.choices(popul.Individuals, weights=weights, k=2) # выбираем две случ особи с учетом вероятности расчитанной выше
 
                     if random.random() < self.crossover_rate:
