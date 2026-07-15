@@ -92,12 +92,19 @@ class GeneticAlgorithm:
                 seen.append(val)
                 
             target_val = random.choice(duplicates)
-            possible_cols = []
-            for c in range(9):
-                if matrix[row][c] == target_val:
-                    possible_cols.append(c)
+            possible_cols = [
+                c
+                for c in range(9)
+                if (
+                    matrix[row][c] == target_val
+                    and (row, c) not in self.fixed_cells
+                )
+            ]
+
+            if not possible_cols:
+                return
+
             col = random.choice(possible_cols)
-            
         else:
             col = random.choice(error_cols)
             seen = []
@@ -109,10 +116,18 @@ class GeneticAlgorithm:
                 seen.append(val)
                 
             target_val = random.choice(duplicates)
-            possible_rows = []
-            for r in range(9):
-                if matrix[r][col] == target_val:
-                    possible_rows.append(r)
+            possible_rows = [
+                r
+                for r in range(9)
+                if (
+                    matrix[r][col] == target_val
+                    and (r, col) not in self.fixed_cells
+                )
+            ]
+
+            if not possible_rows:
+                return
+
             row = random.choice(possible_rows)
 
         b_row = (row//3)* 3
@@ -196,10 +211,29 @@ class GeneticAlgorithm:
         }
         
 
-    def _tournament_selection(self, population_individuals, tournament_size=10):
-            tournament = random.sample(population_individuals, tournament_size)
-            return min(tournament, key=lambda x: x.fitness) 
+    def _tournament_selection(
+        self,
+        population_individuals,
+        tournament_size=10,
+    ):
+        if not population_individuals:
+            raise ValueError("Нельзя выбрать особь из пустой популяции")
 
+        actual_size = min(
+            tournament_size,
+            len(population_individuals),
+        )
+
+        tournament = random.sample(
+            population_individuals,
+            actual_size,
+        )
+
+        return min(
+            tournament,
+            key=lambda individual: individual.fitness,
+        )
+    
     def step(self):
         if self.solved or self.current_generation >= self.max_generations:
             return self.get_snapshot()
