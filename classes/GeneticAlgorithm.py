@@ -177,13 +177,14 @@ class GeneticAlgorithm:
             "solved": self.solved,
             "matrix": copy.deepcopy(best_individual.currentMatrix),
         }
+        
 
     def _tournament_selection(self, population_individuals, tournament_size=10):
             tournament = random.sample(population_individuals, tournament_size)
             return min(tournament, key=lambda x: x.fitness) 
 
     def step(self):
-        if self.solved or (self.current_generation >= self.max_generations):
+        if self.solved or self.current_generation >= self.max_generations:
             return self.get_snapshot()
 
         self.current_generation += 1
