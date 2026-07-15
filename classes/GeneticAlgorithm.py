@@ -118,10 +118,9 @@ class GeneticAlgorithm:
             "solved": self.solved,
             "matrix": copy.deepcopy(best_individual.currentMatrix),
         }
-    
-
+        
     def step(self):
-        if self.solved or (self.current_generation >= self.max_generations):
+        if self.solved or self.current_generation >= self.max_generations:
             return self.get_snapshot()
 
         self.current_generation += 1
