@@ -143,29 +143,6 @@ class GeneticAlgorithm:
             swap_r, swap_c = random.choice(variants)
             matrix[swap_r][swap_c], matrix[row][col] = matrix[row][col], matrix[swap_r][swap_c]
 
-    def get_generation_stats(self):
-        best_individual = None
-        best_fitness = float("inf")
-        all_fitnesses = []
-
-        for popul in self.populations:
-            popul.update()
-
-            for individual in popul.Individuals:
-                fitness = individual.fitness
-                all_fitnesses.append(fitness)
-
-                if fitness < best_fitness:
-                    best_fitness = fitness
-                    best_individual = individual
-
-        if not all_fitnesses:
-            raise ValueError("Нет особей для расчета fitness")
-
-        avg_fitness = sum(all_fitnesses) / len(all_fitnesses)
-
-        return best_individual, best_fitness, avg_fitness
-    
     def get_snapshot(self):
         best_individuals = []
 
