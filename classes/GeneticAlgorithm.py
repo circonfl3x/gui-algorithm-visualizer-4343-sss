@@ -152,24 +152,41 @@ class GeneticAlgorithm:
         return best_individual, best_fitness, avg_fitness
     
     def get_snapshot(self):
-        best_population = min(
-            self.populations,
-            key=lambda population: population.fittest,
-        )
+        best_individuals = []
+
+        for population in self.populations:
+            if not population.Individuals:
+                raise ValueError("В популяции отсутствуют особи")
+
+            best_in_population = min(
+                population.Individuals,
+                key=lambda individual: individual.fitness,
+            )
+
+            best_individuals.append(best_in_population)
+            population.fittest = best_in_population.fitness
+
+        population_fitness = [
+            individual.fitness
+            for individual in best_individuals
+        ]
 
         best_individual = min(
-            best_population.Individuals,
+            best_individuals,
             key=lambda individual: individual.fitness,
         )
 
-        population_fitness = [
-            population.fittest
-            for population in self.populations
-        ]
+        best_fitness = best_individual.fitness
+
+        if best_fitness == 0:
+            self.solved = True
+            self.solution = copy.deepcopy(
+                best_individual.currentMatrix
+            )
 
         return {
             "generation": self.current_generation,
-            "best_fitness": best_population.fittest,
+            "best_fitness": best_fitness,
             "avg_fitness": (
                 sum(population_fitness) / len(population_fitness)
             ),
@@ -189,77 +206,134 @@ class GeneticAlgorithm:
 
         self.current_generation += 1
 
-        for popul in self.populations:
+        for population in self.populations:
+            population.update()
 
-            nxt_generation = []
-
-            popul.update()
-
-            start_best_fitness = popul.fittest
-
-            if popul.fittest == 0:
+            if population.fittest == 0:
                 print("Solution found")
-                return popul.answer.currentMatrix
+                return self.get_snapshot()
 
-            sorted_individuals = sorted(popul.Individuals, key=lambda x: x.fitness) # сортируем особей по убыванию их приспособленности
+            start_best_fitness = population.fittest
 
-            nxt_generation.append(sorted_individuals[0]) 
-            nxt_generation.append(sorted_individuals[1])
+            sorted_individuals = sorted(
+                population.Individuals,
+                key=lambda individual: individual.fitness,
+            )
 
-            if popul.equal_fitness_count > 50: # если за 50 поколений не было улучшения, то пересоздаем популяцию
-                new_population = Population(self.field, self.population_size)
-                nxt_generation += new_population.Individuals[2:]
-                popul.equal_fitness_count = 0
-                popul.Individuals = nxt_generation
+            # Сохраняем двух лучших особей — элитизм
+            next_generation = [
+                Individual(copy.deepcopy(sorted_individuals[0].currentMatrix)),
+                Individual(copy.deepcopy(sorted_individuals[1].currentMatrix)),
+            ]
+
+            # Если улучшений долго нет — пересоздаём популяцию,
+            # сохраняя двух лучших особей
+            if population.equal_fitness_count >= 50:
+                new_population = Population(
+                    copy.deepcopy(self.field),
+                    self.population_size,
+                )
+
+                individuals_needed = (
+                    self.population_size - len(next_generation)
+                )
+
+                next_generation.extend(
+                    new_population.Individuals[:individuals_needed]
+                )
+
+                population.equal_fitness_count = 0
 
             else:
-                current_mut_rate = self.mutation_rate
+                current_mutation_rate = self.mutation_rate
                 mutations_count = 1
-                if popul.equal_fitness_count > 10:
-                    current_mut_rate = min(0.8, self.mutation_rate*2) # повышаем шанс мутации
+
+                if population.equal_fitness_count > 10:
+                    current_mutation_rate = min(
+                        0.8,
+                        self.mutation_rate * 2,
+                    )
                     mutations_count = 2
 
-                for i in range(self.population_size//2 - 1):
-                    parent1 = self._tournament_selection(popul.Individuals)
-                    parent2 = self._tournament_selection(popul.Individuals)
+                while len(next_generation) < self.population_size:
+                    parent1 = self._tournament_selection(
+                        population.Individuals
+                    )
+                    parent2 = self._tournament_selection(
+                        population.Individuals
+                    )
+
                     if random.random() < self.crossover_rate:
-                        new_matrix1, new_matrix2 = self._crossover(parent1.currentMatrix, parent2.currentMatrix)
-                        child1 = Individual(new_matrix1)
-                        child2 = Individual(new_matrix2)
+                        matrix1, matrix2 = self._crossover(
+                            parent1.currentMatrix,
+                            parent2.currentMatrix,
+                        )
                     else:
-                        child1 = Individual(copy.deepcopy(parent1.currentMatrix))
-                        child2 = Individual(copy.deepcopy(parent2.currentMatrix))
+                        matrix1 = copy.deepcopy(parent1.currentMatrix)
+                        matrix2 = copy.deepcopy(parent2.currentMatrix)
 
-                    if random.random() < current_mut_rate: 
-                        for _ in range(mutations_count): # делаем несколько мутаций подряд
-                            self._mutatation(child1.currentMatrix) 
-                    if random.random() < current_mut_rate:
+                    # Мутируем матрицы до создания Individual,
+                    # чтобы fitness соответствовал матрице
+                    if random.random() < current_mutation_rate:
                         for _ in range(mutations_count):
-                            self._mutatation(child2.currentMatrix)
+                            self._mutatation(matrix1)
 
-                    nxt_generation.append(child1)
-                    nxt_generation.append(child2)
+                    if random.random() < current_mutation_rate:
+                        for _ in range(mutations_count):
+                            self._mutatation(matrix2)
 
-                if popul.fittest >= start_best_fitness:
-                    popul.equal_fitness_count += 1
+                    next_generation.append(Individual(matrix1))
+
+                    if len(next_generation) < self.population_size:
+                        next_generation.append(Individual(matrix2))
+
+                new_best_fitness = min(
+                    individual.fitness
+                    for individual in next_generation
+                )
+
+                if new_best_fitness < start_best_fitness:
+                    population.equal_fitness_count = 0
                 else:
-                    popul.equal_fitness_count = 0
+                    population.equal_fitness_count += 1
 
-                popul.Individuals = nxt_generation
-        if self.current_generation%20 ==0 and self.population_count > 1: # каждые 20 поколений делаем обмен лучшими особями между популяциями
-            for i in range(self.population_count):
-                best_ind = min(self.populations[i].Individuals, key=lambda x: x.fitness)
-                
-                next_pop_idx = (i+1)%self.population_count # берем следующую популяцию по кругу, чтобы вставить в нее лучшую особь из текущей популяции
-                worst_idx = max(range(self.population_size), key=lambda j: self.populations[next_pop_idx].Individuals[j].fitness) # находим индекс худшей особи в следующей популяции
-                self.populations[next_pop_idx].Individuals[worst_idx] = Individual(copy.deepcopy(best_ind.currentMatrix)) # заменяем худшую особь в следующей популяции на лучшую из текущей
-        snapshot = self.get_snapshot()
+            population.Individuals = next_generation
 
-        if snapshot["solved"]:
-            self.solved = True
-            self.solution = copy.deepcopy(snapshot["matrix"])
+        # Каждые 20 поколений переносим лучшую особь
+        # каждой популяции в следующую
+        if (
+            self.current_generation % 20 == 0
+            and self.population_count > 1
+        ):
+            migrants = [
+                min(
+                    population.Individuals,
+                    key=lambda individual: individual.fitness,
+                )
+                for population in self.populations
+            ]
 
-        return snapshot
+            for population_index, migrant in enumerate(migrants):
+                next_population_index = (
+                    population_index + 1
+                ) % self.population_count
+
+                next_population = self.populations[
+                    next_population_index
+                ]
+
+                worst_index = max(
+                    range(len(next_population.Individuals)),
+                    key=lambda index: (
+                        next_population.Individuals[index].fitness
+                    ),
+                )
+
+                next_population.Individuals[worst_index] = Individual(
+                    copy.deepcopy(migrant.currentMatrix)
+                )
+
+        return self.get_snapshot()
 
     def run(self):
         snapshot = self.get_snapshot()
