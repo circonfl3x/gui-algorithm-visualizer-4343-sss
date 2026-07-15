@@ -1,0 +1,30 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - deployment
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: 2222
+          timeout: 30s
+          command_timeout: 10m
+          script: |
+            set -e
+
+            cd /home/deploy/gui-algorithm-visualizer-4343-sss
+
+            git fetch origin deployment
+            git reset --hard origin/deployment
+
+            docker compose up -d --build --remove-orphans

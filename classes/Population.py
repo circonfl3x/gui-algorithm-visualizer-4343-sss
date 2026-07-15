@@ -6,6 +6,7 @@ class Population:
         self.avg_fitness:float = 0
         self.fitnesses = []
         self.answer = None
+        self.equal_fitness_count = 0
         self.update()
 
     def update(self):
