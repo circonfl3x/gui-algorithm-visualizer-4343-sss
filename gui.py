@@ -105,17 +105,58 @@ def step_forward():
         st.session_state.snapshot_index += 1
         return
 
-    snapshot = st.session_state.ga.step()
+    current_snapshot = get_current_snapshot()
 
+    if (
+        current_snapshot["solved"]
+        or current_snapshot["generation"] >= st.session_state.ga.max_generations
+    ):
+        st.session_state.running = False
+        st.session_state.fast_mode = False
+        return
+
+    result = st.session_state.ga.step()
+
+    if isinstance(result, dict):
+        snapshot = result
+    else:
+        snapshot = st.session_state.ga.get_snapshot()
+
+    required_keys = {
+        "generation",
+        "best_fitness",
+        "avg_fitness",
+        "population_fitness",
+        "solved",
+        "matrix",
+    }
+
+    if not isinstance(snapshot, dict):
+        raise TypeError(
+            "get_snapshot() должен возвращать dict, "
+            f"получен {type(snapshot).__name__}"
+        )
+
+    missing_keys = required_keys - snapshot.keys()
+
+    if missing_keys:
+        raise ValueError(
+            f"В снапшоте отсутствуют поля: {sorted(missing_keys)}"
+        )
+
+    # Добавляем только после полной проверки
     st.session_state.snapshots.append(snapshot)
     st.session_state.snapshot_index = len(st.session_state.snapshots) - 1
 
     add_fitness_point(snapshot)
 
-    if snapshot["solved"] or snapshot["generation"] >= st.session_state.ga.max_generations:
+    if (
+        snapshot["solved"]
+        or snapshot["generation"] >= st.session_state.ga.max_generations
+    ):
         st.session_state.running = False
         st.session_state.fast_mode = False
-        
+
 def step_back():
     if "snapshots" not in st.session_state:
         return
